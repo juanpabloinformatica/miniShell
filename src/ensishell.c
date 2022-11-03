@@ -123,9 +123,7 @@ int main() {
 
 		/* parsecmd free line and set it up to 0 */
 		l = parsecmd( & line);
-		// pid_t pid = fork(void);
-		// execvp(l.seq)
-
+		
 		/* If input stream closed, normal termination */
 		if (!l) {
 		  
@@ -159,12 +157,11 @@ int main() {
 				execvp(cmd[i], cmd);
 				printf("pid: %d\n", pid);
 			}else if(pid<0){
-				
 				printf("error: %s",l->err);
 			}else{
-
 				wait(NULL);
-			}	
+			}
+
 		}
 	}
 
