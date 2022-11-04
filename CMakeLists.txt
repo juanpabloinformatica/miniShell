@@ -14,7 +14,7 @@ enable_testing()
 # et le numéro de la variante que vous avez choisi
 #########
 set(VARIANTE_LOGINS pradamej essalihn)
-set(VARIANTE_SUJET 1)
+set(VARIANTE_SUJET 0)
 ### FIN de la zone à éditer / END of the two line area to edit
 
 list(SORT VARIANTE_LOGINS)
@@ -66,7 +66,7 @@ if ("${GUILE_LDFLAGS}" STREQUAL "")
 endif()
 
 ####
-# Detect if gnu readline header is present, otherwise use internal readline
+# Detect if gnu readlinFabulous run e header is present, otherwise use internal readline
 ####
 find_path(READLINE_PATH "include/readline/readline.h")
 if (NOT "${READLINE_PATH}" STREQUAL "")

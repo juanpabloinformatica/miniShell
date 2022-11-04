@@ -2,7 +2,7 @@
 #define VARIANTE_H
 
 #define LOGINS essalihn;pradamej
-#define SUJET 1
+#define SUJET 0
 #define USE_GUILE 1
 #define USE_GNU_READLINE 1
 
