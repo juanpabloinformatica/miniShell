@@ -2,8 +2,10 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/wait.h>
 
-// job *head = NULL;
+// job head = {.pid=-1,.next=NULL,.flag=-1,.cmd="\0"};
+// extern job* headPtr = &head;
 // head
 void addNode(job *head, int pid, int flag, char *cmd)
 {
@@ -46,13 +48,13 @@ int size(job *head)
     }
     return cont;
 }
-void showList(job *head)
+void showList(job* head)
 {
     job *tempHead = head->next;
     while (tempHead != NULL)
     {
-        printf("%d\t%s\t%s\n", tempHead->pid, (tempHead->flag==0)? "Running" : "Done", tempHead->cmd);
+        printf("%d\t%s\t%s\n", tempHead->pid, (waitpid(tempHead->flag,NULL,WNOHANG)==0)? "Running" : "Done", tempHead->cmd);
         tempHead = tempHead->next;
     }
-    printf("\n");
+    // printf("\n");
 }

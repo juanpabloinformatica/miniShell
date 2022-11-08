@@ -13,73 +13,12 @@
 #include "readcmd.h"
 #include <unistd.h>
 #include <sys/wait.h>
-// #include <stdbool.h>
 #include "jobNode.h"
-void addNode(job *head, int pid, int flag, char *cmd)
-{
-    job *newNode = createNode(pid, flag, cmd);
-    if (head->next == NULL)
-    {
-        head->next = newNode;
-    }
-    else
-    {
-        job *tempHead = head;
-        while (tempHead->next != NULL)
-        {
-            tempHead = tempHead->next;
-        }
-        tempHead->next = newNode;
-    }
-}
-job *createNode(int pid, int flag, char *cmd)
-{
-    job *newNode = NULL;
-    newNode = (job *)malloc(sizeof(job));
-    newNode->pid = pid;
-    newNode->flag = flag;
-    // if(strlen(cmd)>){
+#include <errno.h>
 
-    // }
-    strcpy(newNode->cmd, cmd);
-    newNode->next = NULL;
-    return newNode;
-}
-int size(job *head)
-{
-    int cont = 0;
-    job *tempHead = head;
-    while (tempHead != NULL)
-    {
-        cont++;
-        tempHead = tempHead->next;
-    }
-    return cont;
-}
-void showList(job *head)
-{
-    job *tempHead = head->next;
-    while (tempHead != NULL)
-    {
-        printf("%d\t%s\t%s\n", tempHead->pid, (waitpid(tempHead->flag,NULL,WNOHANG)==0)? "Running" : "Done", tempHead->cmd);
-		// (waitpid(res,NULL,WNOHANG)==0)?0:1
-        tempHead = tempHead->next;
-    }
-    printf("\n");
-}
-
-// typedef struct job{
-// 	pid_t pid;
-// 	bool flag; 
-// 	char cmd[100];
-// }job_t;
-// #include <time.h>
-
-// static job_t jobs[10] = {0};
-// static int job_count = 0;
-
-static job head = {.pid=-1,.next=NULL,.flag=-1,.cmd="\0"};
-job* headPtr = &head;
+job head = {.pid = -1, .next = NULL, .flag = -1, .cmd = "\0"};
+job *headPtr = &head;
+// job* headPtr = NULL;
 
 #ifndef VARIANTE
 #error "Variante non défini !!"
@@ -133,8 +72,6 @@ int main()
 {
 	printf("Variante %d: %s\n", VARIANTE, VARIANTE_STRING);
 
-	
-
 #if USE_GUILE == 1
 	scm_init_guile();
 	/* register "executer" function in scheme */
@@ -143,11 +80,14 @@ int main()
 
 	while (1)
 	{
+		// job* headPtr = NULL;
+		// headPtr = (job*)malloc(sizeof(job));
+		// printf("%d:\t%p:\t",headPtr->pid,headPtr->next);
+		// printf("holaaaa");
 		struct cmdline *l;
 		char *line = 0;
 		int i, j;
 		char *prompt = "ensishell>";
-
 		/* Readline use some internal memory structure that
 		   can not be cleaned at the end of the program. Thus
 		   one memory leak per command seems unavoidable yet */
@@ -179,10 +119,8 @@ int main()
 		/* If input stream closed, normal termination */
 		if (!l)
 		{
-
 			terminate(0);
 		}
-
 		if (l->err)
 		{
 			/* Syntax error, read another command */
@@ -196,52 +134,213 @@ int main()
 			printf("out: %s\n", l->out);
 		if (l->bg)
 			printf("background (&)\n");
-		// job head = {.pid=-1,.next=NULL,.flag=-1,.cmd="\0"};
-		// job* headPtr = &head;
-		printf("%d\n",headPtr->pid);
+
+		// int contComandos = 0;
+		// int contLetraComando = 0;
+		// int flag;
 		/* Display each command of the pipe */
+		// printf("%c",*(l->seq[1]));
 		for (i = 0; l->seq[i] != 0; i++)
 		{
+			// printf("%s",l->seq[1]);
 			char **cmd = l->seq[i];
-			printf("seq[%d]: ", i);
+			// contComandos=0;
+			// printf("size of: %ld\n",sizeof(cmd));
+			// printf("in: %s\n", l->in);
+			// printf("out: %s\n", l->out);
+			// printf("bg: %d\n", l->bg);
+			// for (j = 0; cmd[j] != 0; j++)
+			// {
+			// 	printf("seq[%d]: ", i);
+			// 	printf("'%s' ", cmd[j]);
+
+			// }
+
 			for (j = 0; cmd[j] != 0; j++)
 			{
+				// contComandos++;
+				// contLetraComando =0 ;
+				printf("seq[%d]: ", i);
 				printf("'%s' ", cmd[j]);
+				// char* cmdTemp = cmd[j];
+				// while(*cmdTemp!='\0'){
+				// 	contLetraComando++;
+				// 	printf("\nAaqui testing: %c\n",*cmdTemp);
+				// 	cmdTemp++;
+				// }
+				// printf("despues: %c\n",*cmdTemp);
+				// printf("\ncontador letra comandos: %d",contLetraComando);
 			}
+			// printf("\ncontador comandos: %d",contComandos);
 			printf("\n");
-			// printf("Main Proc: %d \n",getpid());
-			// printf("%d\n", strcmp(cmd[i], "jobs"));
-			if (strcmp(cmd[i], "jobs"))
+
+			// if (i == 1)
+			// {
+			// 	char **cmd_1 = l->seq[0];
+			// 	char **cmd_2 = l->seq[1];
+			// 	int fdp[2];
+			// 	pipe(fdp);
+			// 	int res = fork();
+			// 	if (res == 0)
+			// 	{
+			// 		dup2(fdp[0], 0);
+			// 		close(fdp[1]);
+			// 		close(fdp[0]);
+			// 		execvp(cmd_2[0], cmd_2);
+			// 	}
+			// 	else
+			// 	{
+			// 		dup2(fdp[1], 1);
+			// 		close(fdp[0]);
+			// 		close(fdp[1]);
+			// 		execvp(cmd_1[0], cmd_1);
+			// 	}
+			// }
+
+			// if (strcmp(cmd[i], "jobs"))
+			// {
+			// 	// int pipefds[2];
+			// 	// if (pipe(pipefds) == -1)
+			// 	// {
+			// 	// 	printf("error");
+			// 	// }
+			// 	// if(cmd[i+1]!=NULL){
+			// 	// 	int pipefds[2];
+			// 	// 	if (pipe(pipefds)==-1)
+			// 	// 	{
+			// 	// 		printf("error");
+			// 	// 		return 1;
+			// 	// 	}
+			// 	// 	int subProcess = fork();
+			// 	// 	if(subProcess==0){
+			// 	// 		dup2(pipefds[0],STDIN_FILENO);
+			// 	// 		close(pipefds[0]);
+			// 	// 		close(pipefds[1]);
+			// 	// 		execvp(cmd[i+1],cmd[]);
+			// 	// 	}else{
+			// 	// 		close();
+			// 	// 		dup2(pipefds[0],STDIN_FILENO);
+			// 	// 		execvp()
+			// 	// 	}
+
+			// 	// }
+			// 	pid_t res = fork();
+			// 	// padre process
+			// 	if (res > 0)
+			// 	{
+			// 		if (l->bg == 0)
+			// 		{
+			// 			wait(NULL);
+			// 			// while(wait(NULL)!=-1 ||errno !=ECHILD){
+			// 			// 	printf("waiting");
+			// 			// }
+			// 		}
+			// 		else
+			// 		{
+			// 			addNode(headPtr, res, (waitpid(res, NULL, WNOHANG) == 0) ? 0 : 1, cmd[i]);
+			// 		}
+			// 	}
+			// 	else if (res == 0)
+			// 	{
+
+			// 		// Que haga esto en caso de q se necesite
+			// 		// conectar l info con un separador como
+			// 		// if(strchr(cmd[i],'|')||strchr(cmd[i],'>')||strchr(cmd[i],'<')){
+			// 		// 	int res2 = fork();
+			// 		// 	if(res2==0)
+			// 		// 	{
+			// 		// 		printf("jajajajjaaj");
+			// 		// 	}else
+			// 		// 	{
+			// 		// 		printf("vgggggg");
+			// 		// 	}
+			// 		// }
+			// 		// dup2(pipefds[])
+			// 			if (execvp(cmd[i], cmd) < 0)
+			// 			{
+			// 			printf("\nCould not execute command\n");
+			// 			}
+
+			// 	}
+			// 	else
+			// 	{
+			// 		printf("error: %s", l->err);
+			// 	}
+			// }
+			// else
+			// {
+			// 	showList(headPtr);
+			// }
+		}
+		if (l->seq[1]!=NULL)
+		{
+			// int parentId = getpid();
+			char **cmd_1 = l->seq[0];
+			char **cmd_2 = l->seq[1];
+			// int old_stdin = dup(STDIN_FILENO);
+			// int old_stdout = dup(STDOUT_FILENO);
+			int fdp[2];
+			pipe(fdp);
+			int res = fork();
+			if (res == 0)
+			{
+				dup2(fdp[0], 0);
+				close(fdp[1]);
+				close(fdp[0]);
+				execvp(cmd_2[0], cmd_2);
+				// dup2(old_stdout, STDOUT_FILENO);
+			}
+			else
+			{
+				dup2(fdp[1], 1);
+				close(fdp[0]);
+				close(fdp[1]);
+				execvp(cmd_1[0], cmd_1);
+				// dup2(old_stdin, STDIN_FILENO);
+			}
+			// wait(NULL);
+			//waitpid(parentId,);
+		}else{
+			char **cmd = l->seq[0];
+			if (strcmp(cmd[0], "jobs"))
 			{
 				pid_t res = fork();
-				
+				// padre process
 				if (res > 0)
 				{
-					// printf("Main Proc: %d - Son: %d \n",getpid(), res);
-					if(l->bg==0)
+					if (l->bg == 0)
 					{
 						wait(NULL);
-						// jobs[job_count++].flag = ;					
+						// while(wait(NULL)!=-1 ||errno !=ECHILD){
+						// 	printf("waiting");
+						// }
 					}
 					else
 					{
-						// jobs[job_count].pid = res;
-						// strcpy(jobs[job_count].cmd, cmd[i]);
-						// job_count++;
-						addNode(headPtr,res,(waitpid(res,NULL,WNOHANG)==0)?0:1,cmd[i]);
-						// addNode(headPtr,res,1,cmd[i]);
-						
+						addNode(headPtr, res, (waitpid(res, NULL, WNOHANG) == 0) ? 0 : 1, cmd[0]);
 					}
 				}
 				else if (res == 0)
 				{
-					// printf(" - Son: %d - Main Proc: %d \n", getpid(), getppid());
-					if (execvp(cmd[i], cmd) < 0) 
-					{
+
+					// Que haga esto en caso de q se necesite
+					// conectar l info con un separador como
+					// if(strchr(cmd[i],'|')||strchr(cmd[i],'>')||strchr(cmd[i],'<')){
+					// 	int res2 = fork();
+					// 	if(res2==0)
+					// 	{
+					// 		printf("jajajajjaaj");
+					// 	}else
+					// 	{
+					// 		printf("vgggggg");
+					// 	}
+					// }
+					// dup2(pipefds[])
+						if (execvp(cmd[0], cmd) < 0)
+						{
 						printf("\nCould not execute command\n");
-					}
-					// execvp(cmd[i], cmd);
-					// printf("pid: %d\n", pid);
+						}
+
 				}
 				else
 				{
@@ -251,12 +350,7 @@ int main()
 			else
 			{
 				showList(headPtr);
-				// for (int k = 0; k < size(head); k++)
-				// {
-				// 	// jobs[k].flag = !waitpid(jobs[k].pid, NULL, WNOHANG);
-				// 	printf("%d\t%s\t%s\n", jobs[k].pid, jobs[k].flag ? "Running" : "Done", jobs[k].cmd);
-				// }
-			}		
+			}
 		}
 	}
 }
