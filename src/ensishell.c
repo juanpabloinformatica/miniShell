@@ -186,15 +186,15 @@ int main()
 			// 	int res = fork();
 			// 	if (res == 0)
 			// 	{
-			// 		dup2(fdp[0], 0);
+			// 		dup2(input, 0);
 			// 		close(fdp[1]);
-			// 		close(fdp[0]);
+			// 		close(input);
 			// 		execvp(cmd_2[0], cmd_2);
 			// 	}
 			// 	else
 			// 	{
 			// 		dup2(fdp[1], 1);
-			// 		close(fdp[0]);
+			// 		close(input);
 			// 		close(fdp[1]);
 			// 		execvp(cmd_1[0], cmd_1);
 			// 	}
@@ -284,14 +284,28 @@ int main()
 			int old_stdout = dup(STDOUT_FILENO);
 			int fdp[2];
 			pipe(fdp);
+			int input;
+			if (l->in) {
+				input = open(l->in, O_RDONLY);
+			} else {
+				input = dup(0);
+			}
+			int output;
 			int res = fork();
 			if (res == 0)
 			{
-				dup2(fdp[0], 0);
+				if (l->out) {
+					output = open(l->out, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR);
+					ftruncate(output, 0);
+				} else {
+					output = dup(1);
+				}
+				dup2(input, 0);
+				dup2(output, 1);
 				// fdp[1] = dup(old_stdout);
 				// dup2(fdp[1], 1);
-				close(fdp[1]);
-				close(fdp[0]);
+				close(output);
+				close(input);
 				execvp(cmd_2[0], cmd_2);
 				// perror("execvp");
 				// _exit(1);
@@ -301,9 +315,12 @@ int main()
 			{
 				int res2 = fork();
 				if (res2 == 0) {
-					dup2(fdp[1], 1);
-					close(fdp[0]);
-					close(fdp[1]);
+					output = fdp[1];
+					dup2(input, 0);
+					input = fdp[0];
+					dup2(output, 1);
+					close(input);
+					close(output);
 					execvp(cmd_1[0], cmd_1);
 					// perror("execvp");
 					// _exit(1);
@@ -319,8 +336,8 @@ int main()
 			// wait(NULL);
 			//waitpid(parentId,);
 		}else{
-			// int old_stdin = dup(STDIN_FILENO);
-			// int old_stdout = dup(STDOUT_FILENO);
+			int old_stdin = dup(STDIN_FILENO);
+			int old_stdout = dup(STDOUT_FILENO);
 			int input;
 			if (l->in) {
 				input = open(l->in, O_RDONLY);
@@ -331,7 +348,8 @@ int main()
 			close(input);
 			int output;
 			if (l->out) {
-				output = open(l->out, O_WRONLY);
+				output = open(l->out, O_RDWR | O_CREAT);
+				ftruncate(output, 0);
 			} else {
 				output = dup(1);
 			}
@@ -388,10 +406,10 @@ int main()
 			{
 				showList(headPtr);
 			}
-			// dup2(old_stdin, 0);
-			// dup2(old_stdout, 1);
-			// close(old_stdin);
-			// close(old_stdout);
+			dup2(old_stdin, 0);
+			dup2(old_stdout, 1);
+			close(old_stdin);
+			close(old_stdout);
 		}
 	}
 }
