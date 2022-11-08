@@ -15,6 +15,9 @@
 #include <sys/wait.h>
 #include "jobNode.h"
 #include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 job head = {.pid = -1, .next = NULL, .flag = -1, .cmd = "\0"};
 job *headPtr = &head;
@@ -316,6 +319,24 @@ int main()
 			// wait(NULL);
 			//waitpid(parentId,);
 		}else{
+			// int old_stdin = dup(STDIN_FILENO);
+			// int old_stdout = dup(STDOUT_FILENO);
+			int input;
+			if (l->in) {
+				input = open(l->in, O_RDONLY);
+			} else {
+				input = dup(0);
+			}
+			dup2(input, 0);
+			close(input);
+			int output;
+			if (l->out) {
+				output = open(l->out, O_WRONLY);
+			} else {
+				output = dup(1);
+			}
+			dup2(output, 1);
+			close(output);
 			char **cmd = l->seq[0];
 			if (strcmp(cmd[0], "jobs"))
 			{
@@ -355,7 +376,8 @@ int main()
 						{
 						printf("\nCould not execute command\n");
 						}
-
+						// perror("execvp");
+						// _exit(1);
 				}
 				else
 				{
@@ -366,6 +388,10 @@ int main()
 			{
 				showList(headPtr);
 			}
+			// dup2(old_stdin, 0);
+			// dup2(old_stdout, 1);
+			// close(old_stdin);
+			// close(old_stdout);
 		}
 	}
 }
