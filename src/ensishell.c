@@ -277,27 +277,42 @@ int main()
 			// int parentId = getpid();
 			char **cmd_1 = l->seq[0];
 			char **cmd_2 = l->seq[1];
-			// int old_stdin = dup(STDIN_FILENO);
-			// int old_stdout = dup(STDOUT_FILENO);
+			int old_stdin = dup(STDIN_FILENO);
+			int old_stdout = dup(STDOUT_FILENO);
 			int fdp[2];
 			pipe(fdp);
 			int res = fork();
 			if (res == 0)
 			{
 				dup2(fdp[0], 0);
+				// fdp[1] = dup(old_stdout);
+				// dup2(fdp[1], 1);
 				close(fdp[1]);
 				close(fdp[0]);
 				execvp(cmd_2[0], cmd_2);
+				// perror("execvp");
+				// _exit(1);
 				// dup2(old_stdout, STDOUT_FILENO);
 			}
 			else
 			{
-				dup2(fdp[1], 1);
-				close(fdp[0]);
-				close(fdp[1]);
-				execvp(cmd_1[0], cmd_1);
+				int res2 = fork();
+				if (res2 == 0) {
+					dup2(fdp[1], 1);
+					close(fdp[0]);
+					close(fdp[1]);
+					execvp(cmd_1[0], cmd_1);
+					// perror("execvp");
+					// _exit(1);
+				} else {
+					wait(NULL);
+				}
 				// dup2(old_stdin, STDIN_FILENO);
 			}
+			dup2(old_stdin, 0);
+			dup2(old_stdout, 1);
+			close(old_stdin);
+			close(old_stdout);
 			// wait(NULL);
 			//waitpid(parentId,);
 		}else{
