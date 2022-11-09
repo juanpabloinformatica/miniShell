@@ -94,7 +94,7 @@ void deleteNode(job *head, int pid)
             tempHead = tempHead->next;
         }
         
-        if (tempHead != NULL)ead->cmd);
+        if (tempHead != NULL)
         {
             // printf("cmd : %s",tempHead->cmd);
             strcpy(command,tempHead->cmd);
