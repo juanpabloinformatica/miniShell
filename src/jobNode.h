@@ -13,4 +13,5 @@
     job* createNode(int pid,int flag,char* cmd);
     int size(job* head);
     void showList(job* head);
+    void deleteNode(job* head,int pid);
 #endif // __JOB_LIST__
