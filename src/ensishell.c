@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <sys/wait.h>
 #include "jobNode.h"
+#include "joker_glob.h"
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -181,16 +182,19 @@ int main()
 		// if (l->bg)
 		// 	printf("background (&)\n");
 
-		// /* Display each command of the pipe */
-		// for (i=0; l->seq[i]!=0; i++) {
-		// 	char **cmd = l->seq[i];
-		// 	printf("seq[%d]: ", i);
-        //                 for (j=0; cmd[j]!=0; j++) {
-        //                         printf("'%s' ", cmd[j]);
-        //                 }
-		// 	printf("\n");
+		/* Display each command of the pipe */
+		// for (int i=0; l->seq[i]!=0; i++) {
+		// 	// char **cmd = l->seq[i];
+		// 	// printf("seq[%d]: ", i);
+        //     //             for (int j=0; cmd[j]!=0; j++) {
+        //     //                     printf("'%s' ", cmd[j]);
+        //     //             }
+		// 	// printf("\n");
+		// 	checkJoker(l->seq[i]);
 		// }
 
+		// checkJoker(l->seq[0]);
+		checkJoker(l->seq);
 		char **cmd = l->seq[0];
 		int old_stdin = dup(STDIN_FILENO);
 		int old_stdout = dup(STDOUT_FILENO);

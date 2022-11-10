@@ -14,7 +14,7 @@ enable_testing()
 # et le numéro de la variante que vous avez choisi
 #########
 set(VARIANTE_LOGINS pradamej essalihn)
-set(VARIANTE_SUJET 0)
+set(VARIANTE_SUJET 1)
 ### FIN de la zone à éditer / END of the two line area to edit
 
 list(SORT VARIANTE_LOGINS)
@@ -98,7 +98,7 @@ configure_file (
 # Si vous utilisez plusieurs fichiers, en plus de ensishell.c, pour votre
 # shell il faut les ajouter ici
 ##
-add_executable(ensishell src/readcmd.c src/ensishell.c src/jobNode.c)
+add_executable(ensishell src/readcmd.c src/ensishell.c src/jobNode.c src/joker_glob.c)
 target_link_libraries(ensishell ${READLINE_LDFLAGS} ${GUILE_LDFLAGS})
 
 ##
