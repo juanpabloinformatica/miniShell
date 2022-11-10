@@ -19,9 +19,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <sys/resource.h>
+#include <sys/time.h>
 
 job head = {.pid = -1, .next = NULL, .flag = -1, .cmd = "\0"};
 job *headPtr = &head;
+int limit;
 // job* headPtr = NULL;
 
 #ifndef VARIANTE
@@ -184,13 +187,13 @@ int main()
 
 		/* Display each command of the pipe */
 		// for (int i=0; l->seq[i]!=0; i++) {
-		// 	// char **cmd = l->seq[i];
-		// 	// printf("seq[%d]: ", i);
-        //     //             for (int j=0; cmd[j]!=0; j++) {
-        //     //                     printf("'%s' ", cmd[j]);
-        //     //             }
-		// 	// printf("\n");
-		// 	checkJoker(l->seq[i]);
+		// 	char **cmd = l->seq[i];
+		// 	printf("seq[%d]: ", i);
+        //                 for (int j=0; cmd[j]!=0; j++) {
+        //                         printf("'%s' ", cmd[j]);
+        //                 }
+		// 	printf("\n");
+		// 	// checkJoker(l->seq[i]);
 		// }
 
 		// checkJoker(l->seq[0]);
@@ -200,9 +203,26 @@ int main()
 		int old_stdout = dup(STDOUT_FILENO);
 		int input;
 		int output;
+		// if(cmd)
+		// char unlimitS[100] = "";
+		// int X;
+		if(strcmp(cmd[0],"unlimit\0")==0){
+			if(cmd[1]==NULL){
+				printf("insertez le limit X");
+			}else{
+				printf("%d",atoi(cmd[1]));
+				limit = atoi(cmd[1]);
+				continue;
+			}
+		}
 		if (strcmp(cmd[0], "jobs")) {
 			int res = fork();
 			if (res == 0) {
+				struct rlimit rLimit;
+				getrlimit(RLIMIT_CPU,&rLimit);
+				rLimit.rlim_cur = limit+5;
+				setrlimit(RLIMIT_CPU,&rLimit);
+				// setrlimit(CPU);
 				if (l->in) {
 					input = open(l->in, O_RDONLY);
 					dup2(input, 0);
@@ -241,7 +261,13 @@ int main()
 				}
 				else
 				{
-					addNode(headPtr, res, (waitpid(res, NULL, WNOHANG) == 0) ? 0 : 1, cmd[0]);
+					char cmdComplete[999]="";
+					for(int i = 0; cmd[i]!=NULL;i++){
+						strcat(cmdComplete," ");
+						strcat(cmdComplete,cmd[i]);
+					}
+					strcat(cmdComplete," &");
+					addNode(headPtr, res, (waitpid(res, NULL, WNOHANG) == 0) ? 0 : 1, cmdComplete);
 				}
 			} else {
 				printf("error: %s", l->err);

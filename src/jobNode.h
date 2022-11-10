@@ -5,7 +5,7 @@
     typedef struct job{
         int pid;
 	    int flag;
-        char cmd[100]; 
+        char cmd[999]; 
 	    struct job* next;
     }job;
 

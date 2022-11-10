@@ -8,7 +8,7 @@
 // extern job* headPtr = &head;
 // head
 int count = 0;
-char command[100]; 
+char command[999]; 
 int pidCommand;
 
 void addNode(job *head, int pid, int flag, char *cmd)

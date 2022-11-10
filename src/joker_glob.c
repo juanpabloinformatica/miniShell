@@ -23,5 +23,8 @@ void checkJoker(char*** sequence){
     free(sequence[0]);
     sequence[0] = result.we_wordv;
 }
+void ulimit(int X){
+    
+}
 
 
