@@ -19,12 +19,9 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <sys/resource.h>
-#include <sys/time.h>
 
 job head = {.pid = -1, .next = NULL, .flag = -1, .cmd = "\0"};
 job *headPtr = &head;
-int limit;
 // job* headPtr = NULL;
 
 #ifndef VARIANTE
@@ -132,11 +129,12 @@ int main()
 	{
 		// job* headPtr = NULL;
 		// headPtr = (job*)malloc(sizeof(job));
-		// printf("%d:\t%p:\t",headPtr->pid,headPtr->next);
+		// printf("%d:\t%p:\t",headPtr->res,headPtr->next);
 		// printf("holaaaa");
 		struct cmdline *l;
 		char *line = 0;
 		// int i, j;
+		int i = 0;
 		char *prompt = "ensishell>";
 		/* Readline use some internal memory structure that
 		   can not be cleaned at the end of the program. Thus
@@ -187,95 +185,194 @@ int main()
 
 		/* Display each command of the pipe */
 		// for (int i=0; l->seq[i]!=0; i++) {
-		// 	char **cmd = l->seq[i];
-		// 	printf("seq[%d]: ", i);
-        //                 for (int j=0; cmd[j]!=0; j++) {
-        //                         printf("'%s' ", cmd[j]);
-        //                 }
-		// 	printf("\n");
-		// 	// checkJoker(l->seq[i]);
+		// 	// char **cmd = l->seq[i];
+		// 	// printf("seq[%d]: ", i);
+        //     //             for (int j=0; cmd[j]!=0; j++) {
+        //     //                     printf("'%s' ", cmd[j]);
+        //     //             }
+		// 	// printf("\n");
+		// 	checkJoker(l->seq[i]);
 		// }
 
 		// checkJoker(l->seq[0]);
 		checkJoker(l->seq);
 		char **cmd = l->seq[0];
-		int old_stdin = dup(STDIN_FILENO);
-		int old_stdout = dup(STDOUT_FILENO);
+		// // int old_stdin = dup(STDIN_FILENO);
+		// // int old_stdout = dup(STDOUT_FILENO);
 		int input;
 		int output;
-		// if(cmd)
-		// char unlimitS[100] = "";
-		// int X;
-		if(strcmp(cmd[0],"unlimit\0")==0){
-			if(cmd[1]==NULL){
-				printf("insertez le limit X");
-			}else{
-				printf("%d",atoi(cmd[1]));
-				limit = atoi(cmd[1]);
-				continue;
-			}
-		}
+		// if (l->in) {
+		// 	input = open(l->in, O_RDONLY);
+		// } else {
+		// 	input = dup(0);
+		// }
 		if (strcmp(cmd[0], "jobs")) {
-			int res = fork();
-			if (res == 0) {
-				struct rlimit rLimit;
-				getrlimit(RLIMIT_CPU,&rLimit);
-				rLimit.rlim_cur = limit+5;
-				setrlimit(RLIMIT_CPU,&rLimit);
-				// setrlimit(CPU);
-				if (l->in) {
-					input = open(l->in, O_RDONLY);
-					dup2(input, 0);
-					close(input);
-				}
-				if (l->out) {
-					output = open(l->out, O_RDWR | O_CREAT, 0644);
-					dup2(output, 1);
-					close(output);
-					//ftruncate(output, 0);
-				}
-				if (l->seq[1] != NULL) {
-					char **cmd_2 = l->seq[1];
-					int fdp[2];
+			// int res;
+			// for (i = 0; l->seq[i]!=0; i++) {
+			// 	dup2(input, 0);
+			// 	close(input);
+			// 	if (l->seq[i+1]==NULL) {
+			// 		if (l->out) {
+			// 			output = open(l->out, O_RDWR | O_CREAT, 0644);
+			// 		} else {
+			// 			output = dup(1);
+			// 		}
+			// 	} else {
+			// 		int fdp[2];
+			// 		pipe(fdp);
+			// 		input = fdp[0];
+			// 		output = fdp[1];
+			// 	}
+			// 	dup2(output, 1);
+			// 	close(output);
+			// 	res = fork();
+			// 	if (res == 0) {
+			// 		execvp(l->seq[i][0], l->seq[i]);
+			// 		perror("execvp");
+			// 		_exit(1);
+			// 	}
+			// }
+			// dup2(old_stdin, 0);
+			// dup2(old_stdout, 1);
+			// close(old_stdin);
+			// close(old_stdout);
+			// if (l->bg == 0)
+			// {
+			// 	// for (i=0; l->seq[i]!=0; i++) {
+			// 	// 	wait(NULL);
+			// 	// }
+			// 	waitres(res, NULL, 0);
+			// }
+			// else
+			// {
+			// 	addNode(headPtr, res, (waitres(res, NULL, WNOHANG) == 0) ? 0 : 1, cmd[0]);
+			// }
+			if (l->seq[1] != NULL && l->seq[2] != NULL) {
+				int fdp[2];
+				int res;
+				int fdd = 0;
+
+				while (l->seq[i] != NULL) {
 					pipe(fdp);
-					int res2 = fork();
-					if (res2 == 0) {
-						dup2(fdp[0], 0);
-						close(fdp[1]);
+					res = fork();
+					if (res == -1) {
+						perror("fork");
+						exit(1);
+					}
+					else if (res == 0) {
+						
+						if (i == 0) {
+							if (l->in) {
+								input = open(l->in, O_RDONLY);
+								dup2(input, 0);
+								close(input);
+							}
+						}
+						dup2(fdd, 0);
+						// close(fdd);
+						if (l->seq[i+1] != NULL) {
+							dup2(fdp[1], 1);	
+						} else {
+							if (l->out) {
+								output = open(l->out, O_RDWR | O_CREAT, 0644);
+								dup2(output, 1);
+								close(output);
+								//ftruncate(output, 0);
+							}
+						}
 						close(fdp[0]);
-						execvp(cmd_2[0], cmd_2);
-						perror("execvp");
-						_exit(1);
+						execvp(l->seq[i][0], l->seq[i]);
+						exit(1);
 					}
-					dup2(fdp[1], 1);
-					close(fdp[0]);
-					close(fdp[1]);
-				}
-				execvp(cmd[0], cmd);
-				perror("execvp");
-				_exit(1);
-			} else if (res > 0) {
-				if (l->bg == 0)
-				{
-					wait(NULL);
-				}
-				else
-				{
-					char cmdComplete[999]="";
-					for(int i = 0; cmd[i]!=NULL;i++){
-						strcat(cmdComplete," ");
-						strcat(cmdComplete,cmd[i]);
+					else {
+						if (l->bg == 0) {
+							wait(NULL);
+						} else {
+							addNode(headPtr, res, (waitpid(res, NULL, WNOHANG) == 0) ? 0 : 1, l->seq[0][0]);
+						}		/* Collect childs */
+						close(fdp[1]);
+						fdd = fdp[0];
+						i++;
 					}
-					strcat(cmdComplete," &");
-					addNode(headPtr, res, (waitpid(res, NULL, WNOHANG) == 0) ? 0 : 1, cmdComplete);
 				}
 			} else {
-				printf("error: %s", l->err);
+				int res = fork();
+				if (res == 0) {
+					if (l->in) {
+						input = open(l->in, O_RDONLY);
+						dup2(input, 0);
+						close(input);
+					}
+					if (l->out) {
+						output = open(l->out, O_RDWR | O_CREAT, 0644);
+						dup2(output, 1);
+						close(output);
+						//ftruncate(output, 0);
+					}
+					if (l->seq[1] != NULL) {
+						char **cmd_2 = l->seq[1];
+						int fdp[2];
+						pipe(fdp);
+						int res2 = fork();
+						if (res2 == 0) {
+							dup2(fdp[0], 0);
+							close(fdp[1]);
+							close(fdp[0]);
+							execvp(cmd_2[0], cmd_2);
+							perror("execvp");
+							_exit(1);
+						}
+						dup2(fdp[1], 1);
+						close(fdp[0]);
+						close(fdp[1]);
+					}
+					execvp(cmd[0], cmd);
+					perror("execvp");
+					_exit(1);
+				} else if (res > 0) {
+					if (l->bg == 0)
+					{
+						wait(NULL);
+						wait(NULL);
+					}
+					else
+					{
+						addNode(headPtr, res, (waitpid(res, NULL, WNOHANG) == 0) ? 0 : 1, cmd[0]);
+					}
+				} else {
+					printf("error: %s", l->err);
+				}
+				// dup2(old_stdin, 0);
+				// dup2(old_stdout, 1);
+				// close(old_stdin);
+				// close(old_stdout);
 			}
-			dup2(old_stdin, 0);
-			dup2(old_stdout, 1);
-			close(old_stdin);
-			close(old_stdout);
+
+
+			// 	int fdp[2];
+			// 	int backing_fd;
+			// 	while (l->seq[i] != NULL) {
+			// 		char **cmd_2 = l->seq[i];
+			// 		pipe(fdp);
+			// 		if (i == 1) {
+			// 			backing_fd = fdp[0];
+			// 		}
+			// 		int res2 = fork();
+			// 		if (res2 == 0) {
+			// 			dup2(backing_fd, 0);
+			// 			close(fdp[1]);
+			// 			close(fdp[0]);
+			// 			execvp(cmd_2[0], cmd_2);
+			// 			perror("execvp");
+			// 			_exit(1);
+			// 		}
+			// 		dup2(fdp[1], 1);
+			// 		backing_fd = fdp[0];
+			// 		close(fdp[0]);
+			// 		close(fdp[1]);
+			// 		i++;
+			// 	}
+
 		} else {
 			showList(headPtr);
 		}
