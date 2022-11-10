@@ -9,7 +9,7 @@
 void checkJoker(char*** sequence){
     wordexp_t result;
     char** command;
-    command = sequence[0
+    command = sequence[0];
     for(int j = 0 ; command[j]!=NULL ; j++){
         if(j==0){
             wordexp(command[j],&result,0);
